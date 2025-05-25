@@ -8,6 +8,7 @@ from revolt.ext import commands
 from constants import REVOLT_TOKEN
 from features.auto_react import AutoReact
 from features.auto_response import AutoResponse
+from features.birthdays import Birthdays
 
 
 class Client(commands.CommandsClient):
@@ -15,6 +16,7 @@ class Client(commands.CommandsClient):
         super().__init__(session, token)
         self.add_cog(AutoReact())
         self.add_cog(AutoResponse())
+        self.add_cog(Birthdays(self))
 
     async def get_prefix(self, message: revolt.Message) -> Union[str, list[str]]:
         return "/"
