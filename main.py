@@ -24,8 +24,8 @@ async def on_ready(event: pyvolt.ReadyEvent):
     await bot.add_gear(ChatStreaks(bot))
     await bot.add_gear(ChatSummary(bot))
 
-    print(f"{len(bot.servers)} servers")
-    print(f"{len(bot.users)} users")
+    print(f"{len(event.servers)} servers")
+    print(f"{len(event.users)} users")
     print("ready")
     print(f"logged on as {event.me.tag}")
 
