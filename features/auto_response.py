@@ -1,21 +1,16 @@
-import revolt
-from revolt.ext import commands
+import pyvolt
+from pyvolt.ext import commands
 
 from database import client
 
 
-class AutoResponse(commands.Cog):
+class AutoResponse(commands.Gear):
     def __init__(self):
         super().__init__()
-        self.qualified_name = 'Auto Response'
 
-    @commands.command(name="auto_response_add", usage="/auto_response_add [keyword] [reply]")
+    @commands.command(name="auto_response_add")
+    @commands.has_permissions(manage_server=True)
     async def auto_response_add(self, ctx: commands.Context, keyword: str, reply: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         # Validation: Keyword
         if len(keyword) < 1 or len(keyword) > 100:
             await ctx.send("❌ Keyword is too long or too short")
@@ -40,13 +35,9 @@ class AutoResponse(commands.Cog):
 
         await ctx.send("✅ Auto response rule created")
 
-    @commands.command(name="auto_response_remove", usage="/auto_response_remove [keyword]")
+    @commands.command(name="auto_response_remove")
+    @commands.has_permissions(manage_server=True)
     async def auto_response_remove(self, ctx: commands.Context, keyword: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         if len(keyword) < 1 or len(keyword) > 100:
             await ctx.send("❌ Keyword is too long or too short")
             return
@@ -61,13 +52,9 @@ class AutoResponse(commands.Cog):
         else:
             await ctx.send("❌ Auto response rule not found")
 
-    @commands.command(name="auto_response_change_keyword", usage="/auto_resonse_change_keyword [oldkeyword] [newkeyword]")
+    @commands.command(name="auto_response_change_keyword")
+    @commands.has_permissions(manage_server=True)
     async def auto_response_change_keyword(self, ctx: commands.Context, old_keyword: str, new_keyword: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         if len(new_keyword) < 1 or len(new_keyword) > 100:
             await ctx.send("❌ Keyword is too long or too short")
             return
@@ -93,13 +80,9 @@ class AutoResponse(commands.Cog):
         else:
             await ctx.send("❌ Not found")
 
-    @commands.command(name="auto_response_change_reply", usage="/auto_response_change_reply [keyword] [reply]")
+    @commands.command(name="auto_response_change_reply")
+    @commands.has_permissions(manage_server=True)
     async def auto_response_change_reply(self, ctx: commands.Context, keyword: str, reply: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         if len(reply) < 1 or len(reply) > 1000:
             await ctx.send("❌ Reply is too short or too long")
             return
@@ -118,15 +101,15 @@ class AutoResponse(commands.Cog):
         else:
             await ctx.send("❌ Not found")
 
-    @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
-        if message.author.bot:
+    @commands.Gear.listener()
+    async def on_message(self, event: pyvolt.MessageCreateEvent):
+        if event.message.author.bot:
             return
 
         auto_response_rules = client['AutoResponse'].find({
-            'ServerID': message.server.id
+            'ServerID': event.message.server.id
         })
 
         for i in auto_response_rules:
-            if i['Keyword'] in message.content:
-                await message.channel.send(i['Reply'])
+            if i['Keyword'] in event.message.content:
+                await event.message.channel.send(i['Reply'], replies=[event.message])

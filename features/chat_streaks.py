@@ -1,17 +1,16 @@
 import datetime
 import math
 
-import revolt
-from revolt.ext import commands
+import pyvolt
+from pyvolt.ext import commands
 
 from database import client
 
 
-class ChatStreaks(commands.Cog):
-    def __init__(self, bot: commands.CommandsClient):
+class ChatStreaks(commands.Gear):
+    def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
-        self.qualified_name = "Chat Streaks"
 
     @commands.command(name="streak")
     async def streak_cmd(self, ctx: commands.Context):
@@ -26,18 +25,18 @@ class ChatStreaks(commands.Cog):
 
         await ctx.send(f"your streak is {math.floor(diff)} days :3")
 
-    @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
+    @commands.Gear.listener()
+    async def on_message(self, event: pyvolt.MessageCreateEvent):
 
         data = client['chatstreaks'].find_one({
-            'server': message.server.id,
-            'user': message.author.id
+            'server': event.message.server.id,
+            'user': event.message.author.id
         })
 
         if data is None:
             client['chatstreaks'].insert_one({
-                'server': message.server.id,
-                'user': message.author.id,
+                'server': event.message.server.id,
+                'user': event.message.author.id,
                 'lastmessagedate': datetime.datetime.now(),
                 'startdate': datetime.datetime.now()
             })
@@ -46,8 +45,8 @@ class ChatStreaks(commands.Cog):
 
         if (datetime.datetime.now() - data['lastmessagedate']).total_seconds() >= 129600:
             client['chatstreaks'].update_one({
-                'server': message.server.id,
-                'user': message.author.id
+                'server': event.message.server.id,
+                'user': event.message.author.id
             }, {
                 '$set': {
                     'lastmessagedate': datetime.datetime.now(),
@@ -56,14 +55,14 @@ class ChatStreaks(commands.Cog):
             })
 
             days = (datetime.datetime.now() - data['startdate']).total_seconds() // 86400 + 1
-            await message.channel.send(f"{message.author.mention} your {math.floor(days)} day chat streak has expired :(")
+            await event.message.channel.send(f"{event.message.author.mention} your {math.floor(days)} day chat streak has expired :(")
 
         else:
             before = (datetime.datetime.now() - data['startdate']).total_seconds() // 86400 + 1
 
             client['chatstreaks'].update_one({
-                'server': message.server.id,
-                'user': message.author.id
+                'server': event.message.server.id,
+                'user': event.message.author.id
             }, {
                 '$set': {
                     'lastmessagedate': datetime.datetime.now()
@@ -71,11 +70,11 @@ class ChatStreaks(commands.Cog):
             })
 
             data_a = client['chatstreaks'].find_one({
-                'server': message.server.id,
-                'user': message.author.id
+                'server': event.message.server.id,
+                'user': event.message.author.id
             })
 
             after = (datetime.datetime.now() - data_a['startdate']).total_seconds() // 86400 + 1
 
             if before != after:
-                await message.channel.send(f"{message.author.mention} {math.floor(after)} day chat streak :3")
+                await event.message.channel.send(f"{event.message.author.mention} {math.floor(after)} day chat streak :3")

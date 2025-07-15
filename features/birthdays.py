@@ -2,23 +2,22 @@ import asyncio
 import datetime
 import re
 
-import revolt
-from revolt.ext import commands
+import pyvolt
+from pyvolt.ext import commands
 
 from database import client
 
 
-class Birthdays(commands.Cog):
-    def __init__(self, bot: commands.CommandsClient):
+class Birthdays(commands.Gear):
+    def __init__(self, bot: commands.Bot):
         super().__init__()
-        self.qualified_name = "Birthdays"
         self.bot = bot
 
-    @commands.Cog.listen()
-    async def on_ready(self):
+    @commands.Gear.listener()
+    async def on_ready(self, event: pyvolt.ReadyEvent):
         asyncio.create_task(self.handle_birthday())
 
-    @commands.command(name="set_birthday", usage="/set_birthday YYYY-MM-DD")
+    @commands.command(name="set_birthday")
     async def set_birthday(self, ctx: commands.Context, date: str):
         """Set the birthday for birthday announcements to work"""
         if not re.match("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", date):
@@ -90,9 +89,7 @@ class Birthdays(commands.Cog):
         await ctx.send("✅ set")
 
     @commands.command(name="birthday_announcement_channel")
-    async def birthday_announcement_channel(self, ctx: commands.Context, announcement: str):
-        announcement_channel = commands.channel_converter(announcement, ctx)
-
+    async def birthday_announcement_channel(self, ctx: commands.Context, announcement_channel: pyvolt.TextChannel):
         client['ServerSettings'].update_one({
             'server': ctx.server.id
         }, {
@@ -116,7 +113,7 @@ class Birthdays(commands.Cog):
                     }).to_list()
 
                     for birthday in birthdays:
-                        user = self.bot.get_user(birthday['user'])
+                        user = await self.bot.fetch_user(birthday['user'])
 
                         now = datetime.datetime.now()
                         birthday_date = datetime.datetime(birthday['year'], birthday['month'], birthday['day'])
@@ -143,10 +140,10 @@ class Birthdays(commands.Cog):
                                     continue
 
                                 try:  # try and get channel, and skip if not found
-                                    channel: revolt.TextChannel = self.bot.get_channel(birthday_channel['birthdayChannel'])
+                                    channel = await self.bot.fetch_channel(birthday_channel['birthdayChannel'])
                                 except Exception as e:
                                     continue
-                                if channel.channel_type != revolt.ChannelType.text_channel:
+                                if channel.type != pyvolt.ChannelType.text:
                                     continue
 
                                 await channel.send(

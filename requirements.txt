@@ -1,0 +1,3 @@
+emoji
+pymongo
+pyvolt-re[speed]

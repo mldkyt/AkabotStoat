@@ -1,22 +1,18 @@
-import revolt
-from revolt.ext import commands
+import pyvolt
+from pyvolt.ext import commands
+
 import emoji as emoji_parse
 
 from database import client
 
 
-class AutoReact(commands.Cog):
+class AutoReact(commands.Gear):
     def __init__(self):
         super().__init__()
-        self.qualified_name = 'Auto React'
 
-    @commands.command(name="auto_react_add", usage="/autoreact add [keyword] [emoji]")
+    @commands.command(name="auto_react_add")
+    @commands.has_permissions(manage_server=True)
     async def auto_react_add(self, ctx: commands.Context, keyword: str, emoji: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         # Validation: Keyword
         if len(keyword) < 1 or len(keyword) > 100:
             await ctx.send("❌ Keyword is too long or too short")
@@ -41,13 +37,9 @@ class AutoReact(commands.Cog):
 
         await ctx.send("✅ Auto react rule created")
 
-    @commands.command(name="auto_react_remove", usage="/autoreact remove [keyword]")
+    @commands.command(name="auto_react_remove")
+    @commands.has_permissions(manage_server=True)
     async def auto_react_remove(self, ctx: commands.Context, keyword: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         if len(keyword) < 1 or len(keyword) > 100:
             await ctx.send("❌ Keyword is too long or too short")
             return
@@ -62,13 +54,9 @@ class AutoReact(commands.Cog):
         else:
             await ctx.send("❌ Auto react rule not found")
 
-    @commands.command(name="auto_react_change_keyword", usage="/autoreact change_keyword [oldkeyword] [newkeyword]")
+    @commands.command(name="auto_react_change_keyword")
+    @commands.has_permissions(manage_server=True)
     async def auto_react_change_keyword(self, ctx: commands.Context, old_keyword: str, new_keyword: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         if len(new_keyword) < 1 or len(new_keyword) > 100:
             await ctx.send("❌ Keyword is too long or too short")
             return
@@ -95,12 +83,8 @@ class AutoReact(commands.Cog):
             await ctx.send("❌ Not found")
 
     @commands.command(name="auto_react_change_reaction", usage="/autoreact change_reaction [keyword] [emoji]")
+    @commands.has_permissions(manage_server=True)
     async def auto_react_change_reaction(self, ctx: commands.Context, keyword: str, emoji: str):
-        # Permission check
-        if not ctx.author.has_permissions(manage_server=True):
-            await ctx.send("❌ Insufficient permissions")
-            return
-
         if not emoji_parse.is_emoji(emoji):
             await ctx.send("❌ Not an emoji (if your keyword contains spaces, use quotes)")
             return
@@ -119,15 +103,15 @@ class AutoReact(commands.Cog):
         else:
             await ctx.send("❌ Not found")
 
-    @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
-        if message.author.bot:
+    @commands.Gear.listener()
+    async def on_message(self, event: pyvolt.MessageCreateEvent):
+        if event.message.author.relationship is pyvolt.RelationshipStatus.user:
             return
 
         auto_react_rules = client['AutoReact'].find({
-            'ServerID': message.server.id
+            'ServerID': event.message.server.id
         })
 
         for i in auto_react_rules:
-            if i['Keyword'] in message.content:
-                await message.add_reaction(i['Emoji'])
+            if i['Keyword'] in event.message.content:
+                await event.message.react(i['Emoji'])

@@ -1,9 +1,9 @@
 import asyncio
 from typing import Union, Coroutine, Any
 
-import aiohttp
-import revolt
-from revolt.ext import commands
+import pyvolt
+from pyvolt.ext import commands
+from pyvolt.ext.chunking import MemberChunker, MemberChunkerFlags
 
 from constants import REVOLT_TOKEN
 from features.auto_react import AutoReact
@@ -12,26 +12,21 @@ from features.birthdays import Birthdays
 from features.chat_streaks import ChatStreaks
 from features.chat_summary import ChatSummary
 
+bot = commands.Bot(command_prefix=commands.when_mentioned_or("/"), user_bot=True)
 
-class Client(commands.CommandsClient):
-    def __init__(self, session, token):
-        super().__init__(session, token)
-        self.add_cog(AutoReact())
-        self.add_cog(AutoResponse())
-        self.add_cog(Birthdays(self))
-        self.add_cog(ChatSummary(self))
-        self.add_cog(ChatStreaks(self))
+MemberChunker(bot)
 
-    async def get_prefix(self, message: revolt.Message) -> Union[str, list[str]]:
-        return "/"
+@bot.on(pyvolt.ReadyEvent)
+async def on_ready(event: pyvolt.ReadyEvent):
+    await bot.add_gear(AutoReact())
+    await bot.add_gear(AutoResponse())
+    await bot.add_gear(Birthdays(bot))
+    await bot.add_gear(ChatStreaks(bot))
+    await bot.add_gear(ChatSummary(bot))
 
-    async def on_ready(self) -> None:
-        await self.edit_status(text="/help | 1.0")
+    print(f"{len(bot.servers)} servers")
+    print(f"{len(bot.users)} users")
+    print("ready")
+    print(f"logged on as {event.me.tag}")
 
-
-async def main():
-    async with aiohttp.ClientSession() as session:
-        client = Client(session, REVOLT_TOKEN)
-        await client.start()
-
-asyncio.run(main())
+bot.run(REVOLT_TOKEN)

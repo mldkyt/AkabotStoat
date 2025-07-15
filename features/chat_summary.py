@@ -1,61 +1,53 @@
 import asyncio
 import datetime
 
-import revolt
-from revolt.ext import commands
+import pyvolt
+from pyvolt.ext import commands
 
 from database import client
 
 
-class ChatSummary(commands.Cog):
-    def __init__(self, bot: commands.CommandsClient):
+class ChatSummary(commands.Gear):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.qualified_name = "Chat Summary"
 
-    @commands.Cog.listen()
-    async def on_ready(self):
+    @commands.Gear.listener()
+    async def on_ready(self, event: pyvolt.ReadyEvent):
         asyncio.create_task(self.handle_chat_summary())
 
-    @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
-        if message.author.bot:
+    @commands.Gear.listener()
+    async def on_message(self, event: pyvolt.MessageCreateEvent):
+        if event.message.author.bot:
             return
 
         client['chatsummary'].update_one({
-            'server': message.server.id,
-            'channel': message.channel.id
+            'server': event.message.server.id,
+            'channel': event.message.channel.id
         }, {
             '$inc': {
                 'messages': 1,
-                f'members.{message.author.id}': 1
+                f'members.{event.message.author.id}': 1
             }
         })
 
-    @commands.command(name="chat_summary_set", usage="/chat_summary_set <enabled>")
-    async def chat_summary_set(self, ctx: commands.Context, enabled: str):
+    @commands.command(name="chat_summary_set")
+    @commands.has_permissions(manage_server=True)
+    async def chat_summary_set(self, ctx: commands.Context, enabled: bool):
         """Enable or disable chat summary in the current channel"""
-        if enabled in ["on", "yes", "yesh", "yesh~", "1", "ye", "y", "Y"]:
-            val = True
-        elif enabled in ["off", "no", "nyo", "nyoo", "nyo~", "0", "na", "n", "N"]:
-            val = False
-        else:
-            await ctx.send("❌ invalid value for the enabled parameter, pwease specify yes or no uwu")
-            return
-
         existing = client['chatsummary'].find_one({
             'server': ctx.server.id,
             'channel': ctx.channel.id
         })
 
-        if existing is not None and val:
+        if existing is not None and enabled:
             await ctx.send("✅ already enabled")
             return
 
-        if existing is None and not val:
+        if existing is None and not enabled:
             await ctx.send("✅ already disabled")
             return
 
-        if val:
+        if enabled:
             client['chatsummary'].insert_one({
                 'server': ctx.server.id,
                 'channel': ctx.channel.id,
@@ -79,13 +71,13 @@ class ChatSummary(commands.Cog):
             for i in client['chatsummary'].find():
                 # try and get the server
                 try:
-                    server = self.bot.get_server(i['server'])
+                    server = await self.bot.fetch_server(i['server'])
                 except Exception:
                     continue
 
                 # try and get the channel
                 try:
-                    channel: revolt.TextChannel = server.get_channel(i['channel'])
+                    channel = await self.bot.fetch_channel(i['channel'])
                 except Exception:
                     continue
 
