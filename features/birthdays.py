@@ -2,8 +2,8 @@ import asyncio
 import datetime
 import re
 
-import revolt
-from revolt.ext import commands
+import stoat
+from stoat.ext import commands
 
 from database import client
 
@@ -143,10 +143,10 @@ class Birthdays(commands.Cog):
                                     continue
 
                                 try:  # try and get channel, and skip if not found
-                                    channel: revolt.TextChannel = self.bot.get_channel(birthday_channel['birthdayChannel'])
+                                    channel: stoat.TextChannel = self.bot.get_channel(birthday_channel['birthdayChannel'])
                                 except Exception as e:
                                     continue
-                                if channel.channel_type != revolt.ChannelType.text_channel:
+                                if channel.channel_type != stoat.ChannelType.text_channel:
                                     continue
 
                                 await channel.send(

@@ -1,6 +1,9 @@
 import os
+from dotenv import load_dotenv
 
-REVOLT_TOKEN = os.getenv("REVOLT_TOKEN")
+load_dotenv()
+
+STOAT_TOKEN = os.getenv("STOAT_TOKEN")
 
 MONGODB_HOST = os.getenv("MONGODB_HOST")
 MONGODB_PORT = os.getenv("MONGODB_PORT")
@@ -14,7 +17,7 @@ def validate_values(l: dict[str, str | None]):
             print(f"CONSTANTS: The constant value for {k} is NOT set!")
 
 validate_values({
-    'REVOLT_TOKEN': REVOLT_TOKEN,
+    'STOAT_TOKEN': STOAT_TOKEN,
     'MONGODB_HOST': MONGODB_HOST,
     'MONGODB_PORT': MONGODB_PORT,
     'MONGODB_DB': MONGODB_DB,

@@ -1,5 +1,5 @@
-import revolt
-from revolt.ext import commands
+import stoat
+from stoat.ext import commands
 
 from database import client
 
@@ -119,7 +119,7 @@ class AutoResponse(commands.Cog):
             await ctx.send("❌ Not found")
 
     @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
+    async def on_message(self, message: stoat.Message):
         if message.author.bot:
             return
 

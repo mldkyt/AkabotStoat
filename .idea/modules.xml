@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/akabot_revolt.iml" filepath="$PROJECT_DIR$/.idea/akabot_revolt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/akabot_stoat.iml" filepath="$PROJECT_DIR$/.idea/akabot_stoat.iml" />
     </modules>
   </component>
 </project>

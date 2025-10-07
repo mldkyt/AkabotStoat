@@ -1,8 +1,8 @@
 import asyncio
 import datetime
 
-import revolt
-from revolt.ext import commands
+import stoat
+from stoat.ext import commands
 
 from database import client
 
@@ -17,7 +17,7 @@ class ChatSummary(commands.Cog):
         asyncio.create_task(self.handle_chat_summary())
 
     @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
+    async def on_message(self, message: stoat.Message):
         if message.author.bot:
             return
 
@@ -85,7 +85,7 @@ class ChatSummary(commands.Cog):
 
                 # try and get the channel
                 try:
-                    channel: revolt.TextChannel = server.get_channel(i['channel'])
+                    channel: stoat.TextChannel = server.get_channel(i['channel'])
                 except Exception:
                     continue
 

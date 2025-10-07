@@ -1,8 +1,8 @@
 import datetime
 import math
 
-import revolt
-from revolt.ext import commands
+import stoat
+from stoat.ext import commands
 
 from database import client
 
@@ -27,7 +27,7 @@ class ChatStreaks(commands.Cog):
         await ctx.send(f"your streak is {math.floor(diff)} days :3")
 
     @commands.Cog.listen()
-    async def on_message(self, message: revolt.Message):
+    async def on_message(self, message: stoat.Message):
 
         data = client['chatstreaks'].find_one({
             'server': message.server.id,

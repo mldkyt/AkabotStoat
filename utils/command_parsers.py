@@ -1,11 +1,11 @@
 import re
 
-import revolt
-from revolt.ext import commands
+import stoat
+from stoat.ext import commands
 from utils.errors import CommandParseError
 
 
-def parse_text_channel(ctx: commands.Context, channel: str) -> revolt.TextChannel:
+def parse_text_channel(ctx: commands.Context, channel: str) -> stoat.TextChannel:
     """
     Parses the channel in the channel parameter and validates it's a real text channel.
     :param ctx: The command context
@@ -22,7 +22,7 @@ def parse_text_channel(ctx: commands.Context, channel: str) -> revolt.TextChanne
     if not channel_inst:
         raise CommandParseError(f"Invalid channel: {channel}")
 
-    if channel_inst.channel_type != revolt.ChannelType.text_channel:
+    if channel_inst.channel_type != stoat.ChannelType.text_channel:
         raise CommandParseError(f"Not a text channel: {channel}")
 
     return channel_inst

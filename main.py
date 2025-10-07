@@ -1,11 +1,11 @@
 import asyncio
-from typing import Union, Coroutine, Any
+from typing import Union
 
 import aiohttp
-import revolt
-from revolt.ext import commands
+import stoat
+from stoat.ext import commands
 
-from constants import REVOLT_TOKEN
+from constants import STOAT_TOKEN
 from features.auto_react import AutoReact
 from features.auto_response import AutoResponse
 from features.birthdays import Birthdays
@@ -22,16 +22,16 @@ class Client(commands.CommandsClient):
         self.add_cog(ChatSummary(self))
         self.add_cog(ChatStreaks(self))
 
-    async def get_prefix(self, message: revolt.Message) -> Union[str, list[str]]:
+    async def get_prefix(self, message: stoat.Message) -> Union[str, list[str]]:
         return "/"
 
     async def on_ready(self) -> None:
-        await self.edit_status(text="/help | 1.0")
+        await self.edit_status(text="/help | 0.1")
 
 
 async def main():
     async with aiohttp.ClientSession() as session:
-        client = Client(session, REVOLT_TOKEN)
+        client = Client(session, STOAT_TOKEN)
         await client.start()
 
 asyncio.run(main())
